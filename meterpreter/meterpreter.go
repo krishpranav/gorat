@@ -44,3 +44,19 @@ func GetURIChecksumId() int {
 	}
 	return res
 }
+
+func GenerateURIChecksum(length int) string {
+	var charset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+	for {
+		var checksum int = 0
+		var uriString string
+
+		uriString = GetRandomString(length, charset)
+		for _, value := range uriString {
+			checksum += int(value)
+		}
+		if (checksum % 0x100) == GetURIChecksumId() {
+			return uriString
+		}
+	}
+}
