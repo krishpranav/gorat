@@ -2,6 +2,7 @@ package meterpreter
 
 import (
 	"math/rand"
+	"runtime"
 	"time"
 )
 
@@ -29,4 +30,17 @@ func GetRandomString(length int, charset string) string {
 		buf[i] = charset[seed.Intn(len(charset))]
 	}
 	return string(buf)
+}
+
+func GetURIChecksumId() int {
+	var res int = 0
+	switch runtime.GOOS {
+	case "windows":
+		res = 92
+	case "linux":
+		res = 95
+	default:
+		res = 92
+	}
+	return res
 }
