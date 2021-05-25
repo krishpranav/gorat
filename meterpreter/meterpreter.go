@@ -1,5 +1,10 @@
 package meterpreter
 
+import (
+	"math/rand"
+	"time"
+)
+
 func Meterpreter(connType, address string) (bool, error) {
 	var (
 		ok  bool
@@ -15,4 +20,13 @@ func Meterpreter(connType, address string) (bool, error) {
 	}
 
 	return ok, err
+}
+
+func GetRandomString(length int, charset string) string {
+	var seed *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	buf := make([]byte, length)
+	for i := range buf {
+		buf[i] = charset[seed.Intn(len(charset))]
+	}
+	return string(buf)
 }
